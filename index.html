@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Retrify</title>
+	<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+	<div id="images">
+		<div id="unretrified" onclick="file.click()">
+			<img src="./static/placeholder.png" id="preview" />
+		</div>
+		<div id="retrified"></div>
+	</div>
+	
+	<form id="form">
+	
+		<div id="message"></div>
+
+		<div class="grid">
+			<legend>
+				<label>URL</label>
+				<input type="text" placeholder="http://example.com/path/to/image" id="url" />
+				<p>(Don't put anything here if you specified file)</p>
+			</legend>
+	
+			<legend>
+				<label>File</label>
+				<input accept="image/*" type="file" id="file" />
+				<span id="remove-file" hidden>X</span>
+				<p>(Don't put anything here if you specified URL)</p>
+			</legend>
+
+			<legend>
+				<label>Pixel Size</label>
+				<input type="number" min="1" max="20" placeholder="10" value="10" id="pixelSize" />
+			</legend>
+
+			<legend>
+				<label>Scale</label>
+				<input type="number" min="0" placeholder="0" value="0" id="scale" />
+			</legend>
+		</div>
+
+		<button type="submit" id="submit_button">Submit</button>
+		<button type="reset" id="clear_button">Clear</button>
+	</form>
+
+	<script src="index.js"></script>
+</body>
+</html>

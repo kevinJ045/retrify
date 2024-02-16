@@ -1,0 +1,92 @@
+body{
+	margin: 0;
+	font-family: 'Courier New', Courier, monospace;
+	background: #1e1e2e;
+	color: #a6adc8;
+	display: flex;
+	flex-direction: column;
+}
+
+input{
+	background: #181825;
+	border: 0;
+	padding: 5px 12px;
+	color: #a6adc8;
+	outline: 0;
+	font-size: 16px;
+}
+
+#form .grid {
+	display: grid;
+	grid-template-columns: repeat(2, 2fr);
+}
+
+#form legend{
+	padding: 10px;
+}
+
+#form legend p {
+	line-height: 10px;
+}
+
+#images{
+	width: 100%;
+	background: #11111b;
+	height: 50dvh;
+	display: flex;
+}
+#images > * {
+	width: 50%;
+}
+
+#unretrified{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: auto;
+}
+#unretrified > img{
+	max-width: 100%;
+}
+input::-webkit-file-upload-button{
+	display: none;
+}
+
+#form > button {
+	margin: 10px;
+	width: calc(100% - 20px);
+	background: #cba6f7;
+	padding: 5px 10px;
+	border: 0;
+	font-weight: 700;
+	cursor: pointer;
+	border-radius: 5px;
+}
+
+#form > [type="reset"] {
+	background: #f38ba8;
+}
+
+.pixel{
+	display: block;
+	float: left;
+}
+
+#retrified {
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+#retrified .pixel-row{
+	width: auto;
+	display: flex;
+}
+
+#remove-file{
+	cursor: pointer;
+}
+
+#message{
+	padding: 10px;
+}
