@@ -2,7 +2,9 @@
 	function imageToPixelMap({
 		imageUrl =  "",
 		pixelSize = 10,
-		scaleTo = 0
+		scaleTo = 0,
+		flip = false,
+		rotation = 0
 	}) {
 		const image = new Image();
 		image.src = imageUrl;
@@ -11,7 +13,7 @@
 			image.onload = function () {
 				const canvas = document.createElement('canvas');
 				const context = canvas.getContext('2d');
-				const rotationAngle = -360;
+				const rotationAngle = rotation;
 
 				const originalWidth = image.width;
 				const originalHeight = image.height;
@@ -26,7 +28,7 @@
 				canvas.height = rotatedHeight * scale;
 
 				context.translate(canvas.width / 2, canvas.height / 2);
-				// context.scale(-1, 1); // Apply horizontal scale to fix the flipping issue
+				if(flip) context.scale(-1, 1);
 				context.rotate(rotationAngle * Math.PI / 180);
 				context.drawImage(image, -originalWidth * scale / 2, -originalHeight * scale / 2, originalWidth * scale, originalHeight * scale);
 
@@ -80,6 +82,9 @@
 	const fileInput = document.getElementById('file');
 	const pixelSizeInput = document.getElementById('pixelSize');
 	const scaleInput = document.getElementById('scale');
+	const rotationInput = document.getElementById('rotation');
+	const removeBlackInput = document.getElementById('removeBlack');
+	const flippedInput = document.getElementById('flipped');
 
 	const submit_button = document.getElementById('submit_button');
 	const clear_button = document.getElementById('clear_button');
@@ -101,7 +106,10 @@
 			url: urlInput.value,
 			file,
 			scale: parseInt(scaleInput.value),
-			pixelSize: parseInt(pixelSizeInput.value)
+			pixelSize: parseInt(pixelSizeInput.value),
+			rotation: parseInt(rotationInput.value),
+			removeBlack: removeBlackInput.checked,
+			flipped: flippedInput.checked
 		});
 
 	} 
@@ -149,7 +157,9 @@
 			imageToPixelMap({
 				imageUrl: url,
 				pixelSize: options.pixelSize,
-				scaleTo: options.scale
+				scaleTo: options.scale,
+				flip: options.flipped,
+				rotation: options.rotation
 			}).then((map) => {
 				submit_button.disabled = false;
 
@@ -175,6 +185,12 @@
 					}
 
 					lastElement.appendChild(pixel);
+
+					if(options.removeBlack){
+						if(pixelData.rgb.join('') === '000'){
+							pixelData.filled = false;
+						}
+					}
 
 					pixel.style.background = `rgba(${pixelData.rgb}, ${pixelData.filled ? '1' : '0'})`;
 

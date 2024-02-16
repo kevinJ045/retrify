@@ -35,12 +35,27 @@
 
 			<legend>
 				<label>Pixel Size</label>
-				<input type="number" min="1" max="20" placeholder="10" value="10" id="pixelSize" />
+				<input type="range" min="1" max="20" value="10" id="pixelSize" oninput="pixelsizeval.innerText = event.target.value"/> <span id="pixelsizeval">10</span>
 			</legend>
 
 			<legend>
 				<label>Scale</label>
-				<input type="number" min="0" placeholder="0" value="0" id="scale" />
+				<input type="number" min="0" placeholder="normal: 0, crazy: 2000" value="0" id="scale" />
+			</legend>
+
+			<legend>
+				<label>Remove black</label>
+				<input type="checkbox" id="removeBlack" />
+			</legend>
+
+			<legend>
+				<label>Flipped result</label>
+				<input type="checkbox" id="flipped" />
+			</legend>
+
+			<legend>
+				<label>Rotation</label>
+				<input type="number" min="-360" max="360" placeholder="0" value="0" id="rotation" />
 			</legend>
 		</div>
 
