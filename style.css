@@ -53,15 +53,18 @@ input::-webkit-file-upload-button{
 	display: none;
 }
 
-#form > button {
-	margin: 10px;
-	width: calc(100% - 20px);
-	background: #cba6f7;
-	padding: 5px 10px;
+#form > button, button {
 	border: 0;
 	font-weight: 700;
 	cursor: pointer;
 	border-radius: 5px;
+	background: #cba6f7;
+	padding: 5px 10px;
+}
+
+#form > button, button {
+	margin: 10px;
+	width: calc(100% - 20px);
 }
 
 #form > [type="reset"] {
@@ -91,4 +94,8 @@ input::-webkit-file-upload-button{
 
 #message{
 	padding: 10px;
+}
+
+#export_button {
+	background: #f9e2af;
 }

@@ -88,6 +88,7 @@
 
 	const submit_button = document.getElementById('submit_button');
 	const clear_button = document.getElementById('clear_button');
+	const export_button = document.getElementById('export_button');
 	const removeFile = document.getElementById('remove-file');
 
 	let file = null;
@@ -234,5 +235,20 @@
 		showPreview(file);
 		message('Dropped file');
 	},false);
+
+	function downloadAsPng() {
+		export_button.disabled = true;
+		html2canvas(retrified, { scale: 2 }) // You can adjust the scale as needed
+			.then((canvas) => {
+				export_button.disabled = false;
+				const image = canvas.toDataURL('image/png');
+				const link = document.createElement('a');
+				link.href = image;
+				link.download = 'retrified.png';
+				link.click();
+			});
+	}
+
+	export_button.onclick = downloadAsPng;
 
 })();
