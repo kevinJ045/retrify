@@ -21,53 +21,56 @@
 
 		<div class="grid">
 			<legend>
-				<label>URL</label>
+				<label for="url">URL</label>
 				<input type="text" placeholder="http://example.com/path/to/image" id="url" />
 				<p>(Don't put anything here if you specified file)</p>
 			</legend>
 	
 			<legend>
-				<label>File</label>
+				<label for="file">File</label>
 				<input accept="image/*" type="file" id="file" />
 				<span id="remove-file" hidden>X</span>
 				<p>(Don't put anything here if you specified URL)</p>
 			</legend>
 
 			<legend>
-				<label>Pixel Size</label>
+				<label for="pixelSize">Pixel Size</label>
 				<input type="range" min="1" max="20" value="10" id="pixelSize" oninput="pixelsizeval.innerText = event.target.value"/> <span id="pixelsizeval">10</span>
 			</legend>
 
 			<legend>
-				<label>Scale</label>
+				<label for="scale">Scale</label>
 				<input type="number" min="0" placeholder="normal: 0, crazy: 2000" value="0" id="scale" />
 			</legend>
 
 			<legend>
-				<label>Remove black</label>
+				<label for="removeBlack">Remove black</label>
 				<input type="checkbox" id="removeBlack" />
+				<p>Only use if there are black edges</p>
 			</legend>
 
 			<legend>
-				<label>Flipped result</label>
+				<label for="use_elements">Use Elements Instead</label>
+				<input type="checkbox" id="use_elements" />
+				<p>Using elements means more CPU usage but more accuracy</p>
+			</legend>
+
+			<legend>
+				<label for="flipped">Flipped result</label>
 				<input type="checkbox" id="flipped" />
 			</legend>
 
 			<legend>
-				<label>Rotation</label>
+				<label for="rotation">Rotation</label>
 				<input type="number" min="-360" max="360" placeholder="0" value="0" id="rotation" />
-			</legend>
-
-			<legend>
-				<button type="button" id="export_button">Export</button>
 			</legend>
 		</div>
 
 		<button type="submit" id="submit_button">Submit</button>
+		<button type="button" id="export_button">Export</button>
 		<button type="reset" id="clear_button">Clear</button>
 	</form>
-
-	<script src="html2canvas.js"></script>
+	
 	<script src="index.js"></script>
 </body>
 </html>

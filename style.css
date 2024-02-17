@@ -26,7 +26,12 @@ input{
 	padding: 10px;
 }
 
+#form legend label{
+	font-weight: 700;
+}
+
 #form legend p {
+	color: #7f849c;
 	line-height: 10px;
 }
 
@@ -97,5 +102,5 @@ input::-webkit-file-upload-button{
 }
 
 #export_button {
-	background: #f9e2af;
+	background: #f9e2af !important;
 }

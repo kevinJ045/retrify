@@ -34,24 +34,42 @@
 
 				const pixelMap = [];
 
+				let width = 1;
+				let height = 1;
+				let perRow = 1;
+				let perCol = 1;
+
+				const perRowPixels = [];
+
 				for (let y = 0; y < canvas.height; y += pixelSize) {
+					const rowPixels = [];
 					for (let x = 0; x < canvas.width; x += pixelSize) {
 						const pixelData = context.getImageData(x, y, pixelSize, pixelSize).data;
 						const isPixelFilled = pixelData.some(value => value > 0);
 
-						pixelMap.push({
-							x: x / pixelSize,
-							y: y / pixelSize,
-							filled: isPixelFilled,
-							rgb: [pixelData[0], pixelData[1], pixelData[2]],
-						});
+						const pixel = {
+								x: x / pixelSize,
+								y: y / pixelSize,
+								filled: isPixelFilled,
+								size: pixelSize,
+								rgb: [pixelData[0], pixelData[1], pixelData[2]],
+						};
+
+						rowPixels.push(pixel);
+						pixelMap.push(pixel);
 					}
+					perRowPixels.push(rowPixels);
 				}
+
+				const perColPixels = perRowPixels[0].map((col, i) => perRowPixels.map(row => row[i]));
 
 				resolve({
 					pixelMap,
 					width: Math.floor(canvas.width / pixelSize),
 					height: Math.floor(canvas.height / pixelSize),
+					perRowPixels,
+					pixelSize,
+					perColPixels
 				});
 			};
 		});
@@ -85,13 +103,14 @@
 	const rotationInput = document.getElementById('rotation');
 	const removeBlackInput = document.getElementById('removeBlack');
 	const flippedInput = document.getElementById('flipped');
+	const elementsInput = document.getElementById('use_elements');
 
 	const submit_button = document.getElementById('submit_button');
 	const clear_button = document.getElementById('clear_button');
 	const export_button = document.getElementById('export_button');
 	const removeFile = document.getElementById('remove-file');
 
-	let file = null;
+	let file = null, useElements = false;
 
 	function createPixelRow(w){
 		const element = document.createElement('div');
@@ -110,7 +129,8 @@
 			pixelSize: parseInt(pixelSizeInput.value),
 			rotation: parseInt(rotationInput.value),
 			removeBlack: removeBlackInput.checked,
-			flipped: flippedInput.checked
+			flipped: flippedInput.checked,
+			useElements: elementsInput.checked
 		});
 
 	} 
@@ -166,42 +186,79 @@
 
 				retrified.innerHTML = '';
 
-				let lastTop = 0;
-				let lastElement = createPixelRow();
-				retrified.appendChild(lastElement);
-				let perRow = 0, countRow = true;;
+				if(options.useElements){
+					useElements = options.useElements;
 
-				map.pixelMap.forEach(pixelData => {
-					const pixel = document.createElement('span');
-					pixel.className = 'pixel';
-					
-					pixel.style.width = options.pixelSize+'px';
-					pixel.style.height = options.pixelSize+'px';
-
-					if(pixelData.y > lastTop){
-						if(countRow) lastElement.style.width = (options.pixelSize * perRow)+'px';
-						if(countRow) countRow = false;
-						lastElement = createPixelRow((options.pixelSize * perRow));
-						retrified.appendChild(lastElement);
-					}
-
-					lastElement.appendChild(pixel);
-
-					if(options.removeBlack){
-						if(pixelData.rgb.join('') === '000'){
-							pixelData.filled = false;
+					let lastTop = 0;
+					let lastElement = createPixelRow();
+					retrified.appendChild(lastElement);
+					let perRow = 0, countRow = true;;
+	
+					map.pixelMap.forEach(pixelData => {
+						const pixel = document.createElement('span');
+						pixel.className = 'pixel';
+						
+						pixel.style.width = options.pixelSize+'px';
+						pixel.style.height = options.pixelSize+'px';
+	
+						pixel.pixelData = pixelData;
+	
+						if(pixelData.y > lastTop){
+							if(countRow) lastElement.style.width = (options.pixelSize * perRow)+'px';
+							if(countRow) countRow = false;
+							lastElement = createPixelRow((options.pixelSize * perRow));
+							retrified.appendChild(lastElement);
 						}
-					}
+	
+						lastElement.appendChild(pixel);
+	
+						if(options.removeBlack){
+							if(pixelData.rgb.join('') === '000'){
+								pixelData.filled = false;
+							}
+						}
+	
+						pixel.style.background = `rgba(${pixelData.rgb}, ${pixelData.filled ? '1' : '0'})`;
+	
+						lastTop = pixelData.y;
+						if(countRow) perRow++;
+	
+					});
+				} else {
+					useElements = false;
 
-					pixel.style.background = `rgba(${pixelData.rgb}, ${pixelData.filled ? '1' : '0'})`;
+					const canvas = document.createElement('canvas');
+					const ctx = canvas.getContext('2d');
 
-					lastTop = pixelData.y;
-					if(countRow) perRow++;
+					canvas.width = map.perRowPixels[0].length * map.pixelSize;
+					canvas.height = map.perColPixels[0].length * map.pixelSize;
 
-				});
+					let colIndex = 0, rowIndex = 0;
 
+					map.pixelMap.forEach(pixelData => {
+						if(pixelData.y > rowIndex){
+							rowIndex = pixelData.y;
+							colIndex = 0;
+						}
+
+						if(options.removeBlack){
+							if(pixelData.rgb.join('') === '000'){
+								pixelData.filled = false;
+							}
+						}
+
+						if (pixelData.filled) {
+							ctx.fillStyle = `rgb(${pixelData.rgb.join(',')})`;
+							ctx.fillRect(colIndex * pixelData.size, rowIndex * pixelData.size, pixelData.size, pixelData.size);
+						}
+						
+						colIndex++;
+					});
+
+
+					retrified.appendChild(canvas);		
+				}
 			});
-
 		}
 
 	}
@@ -238,15 +295,37 @@
 
 	function downloadAsPng() {
 		export_button.disabled = true;
-		html2canvas(retrified, { scale: 2 }) // You can adjust the scale as needed
-			.then((canvas) => {
-				export_button.disabled = false;
-				const image = canvas.toDataURL('image/png');
-				const link = document.createElement('a');
-				link.href = image;
-				link.download = 'retrified.png';
-				link.click();
+
+		let canvas;
+
+		if(useElements){
+			canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+
+			canvas.width = retrified.offsetWidth;
+			canvas.height = retrified.offsetHeight;
+
+			Array.from(retrified.children).forEach((pixelRow, rowIndex) => {
+				Array.from(pixelRow.children).forEach((pixel, colIndex) => {
+					let { pixelData } = pixel;
+
+					if (pixelData.filled) {
+						ctx.fillStyle = `rgb(${pixelData.rgb.join(',')})`;
+						ctx.fillRect(colIndex * pixelData.size, rowIndex * pixelData.size, pixelData.size, pixelData.size);
+					}
+				});
 			});
+		} else { 
+			canvas = retrified.children[0];
+		}
+
+	
+		export_button.disabled = false;
+		const image = canvas.toDataURL('image/png');
+		const link = document.createElement('a');
+		link.href = image;
+		link.download = 'retrified.png';
+		link.click();
 	}
 
 	export_button.onclick = downloadAsPng;
