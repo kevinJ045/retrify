@@ -64,6 +64,26 @@
 				<label for="rotation">Rotation</label>
 				<input type="number" min="-360" max="360" placeholder="0" value="0" id="rotation" />
 			</legend>
+
+			<legend>
+				<label for="invert">Invert Colors</label>
+				<input type="checkbox" id="invert" />
+			</legend>
+
+			<legend>
+				<label for="temperature">Temperature</label>
+				<input type="range" min="-100" max="100" value="0" id="temperature" oninput="tempval.innerText = event.target.value"/> <span id="tempval">0</span>
+			</legend>
+
+			<legend>
+				<label for="contrast">Contrast</label>
+				<input type="range" min="-100" max="100" value="0" id="contrast" oninput="contrastval.innerText = event.target.value"/> <span id="contrastval">0</span>
+			</legend>
+
+			<legend>
+				<label for="brightness">Brightness</label>
+				<input type="range" min="-100" max="100" value="0" id="brightness" oninput="brightnessval.innerText = event.target.value"/> <span id="brightnessval">0</span>
+			</legend>
 		</div>
 
 		<button type="submit" id="submit_button">Submit</button>

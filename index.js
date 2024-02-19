@@ -1,13 +1,81 @@
 (function(){
+
+	const clipColor = val => Math.max(0, Math.min(255, val));
+
+	function invertRGBColor(r, g, b) {
+    const invertedR = 255 - r;
+    const invertedG = 255 - g;
+    const invertedB = 255 - b;
+
+    return [
+			clipColor(invertedR),
+			clipColor(invertedG),
+			clipColor(invertedB)
+		];
+	}
+
+	function adjustColorTemperature(r, g, b, temperature) {
+    temperature = Math.max(-100, Math.min(100, temperature));
+
+    const adjustedR = r + temperature;
+    const adjustedG = g + temperature / 2;
+    const adjustedB = b - temperature;
+
+    return [
+			clipColor(adjustedR),
+			clipColor(adjustedG),
+			clipColor(adjustedB)
+		];
+	}
+
+	function adjustPixelContrast(r, g, b, contrast) {
+		const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+		const adjustedR = factor * (r - 128) + 128;
+		const adjustedG = factor * (g - 128) + 128;
+		const adjustedB = factor * (b - 128) + 128;
+
+		return [
+			clipColor(adjustedR),
+			clipColor(adjustedG),
+			clipColor(adjustedB)
+		];
+	}
+
+	function adjustPixelBrightness(r, g, b, brightness) {
+		const adjustedR = r + brightness;
+		const adjustedG = g + brightness;
+		const adjustedB = b + brightness;
+		
+		return [
+			clipColor(adjustedR),
+			clipColor(adjustedG),
+			clipColor(adjustedB)
+		];
+	}
+
+	function allocateNumber(number){
+		if(typeof number == "string") number = parseInt(number);
+		if(isNaN(number)) return 0;
+		return number;
+	}
+
 	function imageToPixelMap({
 		imageUrl =  "",
 		pixelSize = 10,
 		scaleTo = 0,
 		flip = false,
-		rotation = 0
+		rotation = 0,
+		invert = false,
+		temperature = 0,
+		contrast = 0,
+		brightness = 0
 	}) {
 		const image = new Image();
 		image.src = imageUrl;
+
+		temperature = allocateNumber(temperature);
+		contrast = allocateNumber(contrast);
+		brightness = allocateNumber(brightness);
 
 		return new Promise((resolve) => {
 			image.onload = function () {
@@ -33,26 +101,28 @@
 				context.drawImage(image, -originalWidth * scale / 2, -originalHeight * scale / 2, originalWidth * scale, originalHeight * scale);
 
 				const pixelMap = [];
-
-				let width = 1;
-				let height = 1;
-				let perRow = 1;
-				let perCol = 1;
-
 				const perRowPixels = [];
 
 				for (let y = 0; y < canvas.height; y += pixelSize) {
 					const rowPixels = [];
 					for (let x = 0; x < canvas.width; x += pixelSize) {
-						const pixelData = context.getImageData(x, y, pixelSize, pixelSize).data;
+						let pixelData = context.getImageData(x, y, pixelSize, pixelSize).data;
 						const isPixelFilled = pixelData.some(value => value > 0);
+						let rgb = [pixelData[0], pixelData[1], pixelData[2]];
+
+						if(isPixelFilled){
+							if(invert) rgb = invertRGBColor(...rgb);
+							if(temperature) rgb = adjustColorTemperature(...rgb, temperature);
+							if(contrast) rgb = adjustPixelContrast(...rgb, contrast);
+							if(brightness) rgb = adjustPixelBrightness(...rgb, brightness);
+						}
 
 						const pixel = {
 								x: x / pixelSize,
 								y: y / pixelSize,
 								filled: isPixelFilled,
 								size: pixelSize,
-								rgb: [pixelData[0], pixelData[1], pixelData[2]],
+								rgb,
 						};
 
 						rowPixels.push(pixel);
@@ -104,6 +174,10 @@
 	const removeBlackInput = document.getElementById('removeBlack');
 	const flippedInput = document.getElementById('flipped');
 	const elementsInput = document.getElementById('use_elements');
+	const invertInput = document.getElementById('invert');
+	const temperatureInput = document.getElementById('temperature');
+	const brighnessInput = document.getElementById('brightness');
+	const contrastInput = document.getElementById('contrast');
 
 	const submit_button = document.getElementById('submit_button');
 	const clear_button = document.getElementById('clear_button');
@@ -128,9 +202,13 @@
 			scale: parseInt(scaleInput.value),
 			pixelSize: parseInt(pixelSizeInput.value),
 			rotation: parseInt(rotationInput.value),
+			temperature: parseInt(temperatureInput.value),
+			brightness: parseInt(brighnessInput.value),
+			contrast: parseInt(contrastInput.value),
 			removeBlack: removeBlackInput.checked,
 			flipped: flippedInput.checked,
-			useElements: elementsInput.checked
+			useElements: elementsInput.checked,
+			invert: invertInput.checked,
 		});
 
 	} 
@@ -180,7 +258,11 @@
 				pixelSize: options.pixelSize,
 				scaleTo: options.scale,
 				flip: options.flipped,
-				rotation: options.rotation
+				rotation: options.rotation,
+				invert: options.invert,
+				temperature: options.temperature,
+				contrast: options.contrast,
+				brightness: options.brightness
 			}).then((map) => {
 				submit_button.disabled = false;
 
