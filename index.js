@@ -14,6 +14,8 @@
 		];
 	}
 
+	var worker = new Worker('worker.js');
+
 	function adjustColorTemperature(r, g, b, temperature) {
     temperature = Math.max(-100, Math.min(100, temperature));
 
@@ -59,6 +61,24 @@
 		return number;
 	}
 
+
+	function canvasToPixMap(canvas, context, options){
+		return new Promise((r, err) => {
+			try{
+				worker.postMessage({ imageData: context.getImageData(0, 0, canvas.width, canvas.height), width: canvas.width, height: canvas.height, ...options });
+				worker.onmessage = function (e) {
+					var result = e.data;
+					r(result);
+				};
+				worker.onerror = function (e){
+					err(e);
+				}
+			} catch(e){
+				err(e);
+			}
+		});
+	}
+
 	function imageToPixelMap({
 		imageUrl =  "",
 		pixelSize = 10,
@@ -78,13 +98,14 @@
 		brightness = allocateNumber(brightness);
 
 		return new Promise((resolve) => {
-			image.onload = function () {
+			image.onload = async function () {
 				const canvas = document.createElement('canvas');
-				const context = canvas.getContext('2d');
+				let context = canvas.getContext('2d');
 				const rotationAngle = rotation;
 
 				const originalWidth = image.width;
 				const originalHeight = image.height;
+				
 
 				const rotatedWidth = Math.abs(Math.cos(rotationAngle * Math.PI / 180) * originalWidth) + Math.abs(Math.sin(rotationAngle * Math.PI / 180) * originalHeight);
 				const rotatedHeight = Math.abs(Math.sin(rotationAngle * Math.PI / 180) * originalWidth) + Math.abs(Math.cos(rotationAngle * Math.PI / 180) * originalHeight);
@@ -99,48 +120,17 @@
 				if(flip) context.scale(-1, 1);
 				context.rotate(rotationAngle * Math.PI / 180);
 				context.drawImage(image, -originalWidth * scale / 2, -originalHeight * scale / 2, originalWidth * scale, originalHeight * scale);
-
-				const pixelMap = [];
-				const perRowPixels = [];
-
-				for (let y = 0; y < canvas.height; y += pixelSize) {
-					const rowPixels = [];
-					for (let x = 0; x < canvas.width; x += pixelSize) {
-						let pixelData = context.getImageData(x, y, pixelSize, pixelSize).data;
-						const isPixelFilled = pixelData.some(value => value > 0);
-						let rgb = [pixelData[0], pixelData[1], pixelData[2]];
-
-						if(isPixelFilled){
-							if(invert) rgb = invertRGBColor(...rgb);
-							if(temperature) rgb = adjustColorTemperature(...rgb, temperature);
-							if(contrast) rgb = adjustPixelContrast(...rgb, contrast);
-							if(brightness) rgb = adjustPixelBrightness(...rgb, brightness);
-						}
-
-						const pixel = {
-								x: x / pixelSize,
-								y: y / pixelSize,
-								filled: isPixelFilled,
-								size: pixelSize,
-								rgb,
-						};
-
-						rowPixels.push(pixel);
-						pixelMap.push(pixel);
-					}
-					perRowPixels.push(rowPixels);
-				}
-
-				const perColPixels = perRowPixels[0].map((col, i) => perRowPixels.map(row => row[i]));
-
-				resolve({
-					pixelMap,
-					width: Math.floor(canvas.width / pixelSize),
-					height: Math.floor(canvas.height / pixelSize),
-					perRowPixels,
+				
+				resolve(await canvasToPixMap(canvas, context, {
 					pixelSize,
-					perColPixels
-				});
+					scaleTo,
+					flip,
+					rotation,
+					invert,
+					temperature,
+					contrast,
+					brightness
+				}));
 			};
 		});
 	}
@@ -240,6 +230,8 @@
 	}
 
 	function startConversion(options){
+
+		if(submit_button.disabled) return;
 
 		let url = options.url;
 		if(options.file){
