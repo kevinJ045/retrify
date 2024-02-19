@@ -1,59 +1,6 @@
 (function(){
 
-	const clipColor = val => Math.max(0, Math.min(255, val));
-
-	function invertRGBColor(r, g, b) {
-    const invertedR = 255 - r;
-    const invertedG = 255 - g;
-    const invertedB = 255 - b;
-
-    return [
-			clipColor(invertedR),
-			clipColor(invertedG),
-			clipColor(invertedB)
-		];
-	}
-
 	var worker = new Worker('worker.js');
-
-	function adjustColorTemperature(r, g, b, temperature) {
-    temperature = Math.max(-100, Math.min(100, temperature));
-
-    const adjustedR = r + temperature;
-    const adjustedG = g + temperature / 2;
-    const adjustedB = b - temperature;
-
-    return [
-			clipColor(adjustedR),
-			clipColor(adjustedG),
-			clipColor(adjustedB)
-		];
-	}
-
-	function adjustPixelContrast(r, g, b, contrast) {
-		const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-		const adjustedR = factor * (r - 128) + 128;
-		const adjustedG = factor * (g - 128) + 128;
-		const adjustedB = factor * (b - 128) + 128;
-
-		return [
-			clipColor(adjustedR),
-			clipColor(adjustedG),
-			clipColor(adjustedB)
-		];
-	}
-
-	function adjustPixelBrightness(r, g, b, brightness) {
-		const adjustedR = r + brightness;
-		const adjustedG = g + brightness;
-		const adjustedB = b + brightness;
-		
-		return [
-			clipColor(adjustedR),
-			clipColor(adjustedG),
-			clipColor(adjustedB)
-		];
-	}
 
 	function allocateNumber(number){
 		if(typeof number == "string") number = parseInt(number);
